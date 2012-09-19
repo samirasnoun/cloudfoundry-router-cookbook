@@ -19,6 +19,31 @@
 
 include_recipe "nginx"
 
+
+if Chef::Config[:solo]
+
+  Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
+
+else
+
+  n_nodes_nats = search(:node, "role:cloudfoundry_nats_server")
+
+  if n_nodes_nats.count > 0 
+     nats_node = n_nodes_nats.first
+     node.set['router']['searched_data']['nats_server']['host'] = nats_node.ipaddress
+     node.set['router']['searched_data']['nats_server'][:user] = nats_node.nats_server.user
+     node.set['router']['searched_data']['nats_server'][:password]= nats_node.nats_server.password
+     node.set['router']['searched_data']['nats_server'][:port] = nats_node.nats_server.port
+
+  end
+
+
+
+end
+
+
+
+
 template File.join(node[:nginx][:dir], "sites-available", "router") do
   source "nginx.conf.erb"
   owner  "root"

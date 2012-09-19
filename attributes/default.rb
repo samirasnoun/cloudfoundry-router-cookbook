@@ -18,3 +18,11 @@ default[:cloudfoundry_router][:pid_file] = File.join(node[:cloudfoundry_common][
 
 # The biggest application we'll accept.
 default[:cloudfoundry_router][:client_max_body_size] = "256M"
+
+
+default['router']['searched_data'][:nats_server][:user]=''
+default['router']['searched_data'][:nats_server][:password]=''
+default['router']['searched_data'][:nats_server][:host]=''
+default['router']['searched_data'][:nats_server][:port]=''
+
+

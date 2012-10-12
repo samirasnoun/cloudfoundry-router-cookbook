@@ -16,34 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 include_recipe "nginx"
-
-
 if Chef::Config[:solo]
-
   Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
-
 else
+    cf_id_node = node['cloudfoundry_router']['cf_session']['cf_id']
+  n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node} ")
+      k =  n_nodes_nats.first
+        
+        node.set['cloudfoundry_router']['searched_data']['nats_server']['host'] = k['ipaddress'] 
+        node.set['cloudfoundry_router']['searched_data']['nats_server'][:user] = k['nats_server']['user'] 
+        node.set['cloudfoundry_router']['searched_data']['nats_server'][:password]= k['nats_server']['password']
+        node.set['cloudfoundry_router']['searched_data']['nats_server'][:port] = k['nats_server']['port']
 
-  n_nodes_nats = search(:node, "role:cloudfoundry_nats_server")
-
-  if n_nodes_nats.count > 0 
-     nats_node = n_nodes_nats.first
-     node.set['router']['searched_data']['nats_server']['host'] = nats_node.ipaddress
-     node.set['router']['searched_data']['nats_server'][:user] = nats_node.nats_server.user
-     node.set['router']['searched_data']['nats_server'][:password]= nats_node.nats_server.password
-     node.set['router']['searched_data']['nats_server'][:port] = nats_node.nats_server.port
-
-  end
-
-
-
+if(node['cloudfoundry_router']['searched_data']['nats_server']['host'] == nil ) then
+        Chef::Log.warn("No nats servers found for this cloud foundry session =  " + node.ipaddress)
 end
-
-
-
-
 template File.join(node[:nginx][:dir], "sites-available", "router") do
   source "nginx.conf.erb"
   owner  "root"
@@ -51,12 +39,10 @@ template File.join(node[:nginx][:dir], "sites-available", "router") do
   mode   "0644"
   notifies :restart, "service[nginx]"
 end
-
 nginx_site "router"
-
 # nginx recipe adds a default site. It gets in our way, so we remove it.
 nginx_site "default" do
   enable false
 end
-
 cloudfoundry_component "router"
+end

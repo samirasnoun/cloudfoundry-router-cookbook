@@ -21,17 +21,29 @@ if Chef::Config[:solo]
   Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
 else
     cf_id_node = node['cloudfoundry_router']['cf_session']['cf_id']
-  n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node} ")
-      k =  n_nodes_nats.first
+    
+    n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node} ")
+    while n_nodes_nats.count < 1
+     Chef::Log.warn("Waiting for nats .... I am sleeping 7 sec")
+     sleep 7
+     n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node}")
+    end   
+
+    k =  n_nodes_nats.first
         
         node.set['cloudfoundry_router']['searched_data']['nats_server']['host'] = k['ipaddress'] 
         node.set['cloudfoundry_router']['searched_data']['nats_server'][:user] = k['nats_server']['user'] 
         node.set['cloudfoundry_router']['searched_data']['nats_server'][:password]= k['nats_server']['password']
         node.set['cloudfoundry_router']['searched_data']['nats_server'][:port] = k['nats_server']['port']
 
-if(node['cloudfoundry_router']['searched_data']['nats_server']['host'] == nil ) then
-        Chef::Log.warn("No nats servers found for this cloud foundry session =  " + node.ipaddress)
-end
+    node.save 
+
+
+#if(node['cloudfoundry_router']['searched_data']['nats_server']['host'] == nil ) then
+#        Chef::Log.warn("No nats servers found for this cloud foundry session =  " + node.ipaddress)
+#end
+
+
 template File.join(node[:nginx][:dir], "sites-available", "router") do
   source "nginx.conf.erb"
   owner  "root"

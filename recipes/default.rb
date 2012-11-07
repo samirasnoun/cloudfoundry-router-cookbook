@@ -20,11 +20,14 @@ include_recipe "nginx"
 if Chef::Config[:solo]
   Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
 else
+    #node.save
+    node.set['cloudfoundry_common']['cf_session']['cf_id'] = node['cloudfoundry_router']['cf_session']['cf_id']
     cf_id_node = node['cloudfoundry_router']['cf_session']['cf_id']
-    
+    Chef::Log.warn("-----------------------> cf_id_node = " + cf_id_node.to_s)
+ 
     n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node} ")
     while n_nodes_nats.count < 1
-     Chef::Log.warn("Waiting for nats .... I am sleeping 7 sec")
+     Chef::Log.warn("I am in cloudfoundry_router, and waiting for nats .... I am sleeping 7 sec")
      sleep 7
      n_nodes_nats = search(:node, "role:cloudfoundry_nats_server AND cf_id:#{cf_id_node}")
     end   

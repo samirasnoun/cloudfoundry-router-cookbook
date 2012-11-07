@@ -24,6 +24,6 @@ default['cloudfoundry_router']['searched_data'][:nats_server][:password]=''
 default['cloudfoundry_router']['searched_data'][:nats_server][:host]=''
 default['cloudfoundry_router']['searched_data'][:nats_server][:port]=''
 
-default['cloudfoundry_router']['cf_session']['id'] = '1'
-default['cloudfoundry_router']['cf_session']['name'] = ''
+default['cloudfoundry_router']['cf_session']['cf_id'] = '1'
+default['cloudfoundry_router']['cf_session']['cf_name'] = ''
 
